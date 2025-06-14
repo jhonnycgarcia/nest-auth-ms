@@ -17,6 +17,6 @@ export class AuthController {
   }
   @MessagePattern('auth.verify.user')
   verifyUser(@Payload() verifyUserDto: any) {
-    return verifyUserDto;
+    return {verifyUserDto};
   }
 }
