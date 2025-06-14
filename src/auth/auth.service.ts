@@ -3,12 +3,16 @@ import { PrismaClient } from 'generated/prisma';
 import { LoginUserDto, RegisterUserDto } from './dto';
 import { RpcException } from '@nestjs/microservices';
 import * as bcrypt from 'bcrypt';
+import { JwtService } from '@nestjs/jwt';
+import { JwtPayload } from './interfaces/jwt-payload.interface';
 
 @Injectable()
 export class AuthService extends PrismaClient implements OnModuleInit {
   private readonly logger = new Logger(AuthService.name);
 
-  constructor() {
+  constructor(
+    private readonly jwtSrv: JwtService,
+  ) {
     super();
   }
 
@@ -42,7 +46,11 @@ export class AuthService extends PrismaClient implements OnModuleInit {
       const { password: _, ...userData } = newUser;
       return {
         user: userData,
-        token: 'asdfasdf',
+        token: this.signJWT({
+          id: newUser.id,
+          email: newUser.email,
+          name: newUser.name,
+        }),
       };
 
     } catch (error) {
@@ -77,7 +85,11 @@ export class AuthService extends PrismaClient implements OnModuleInit {
       const { password: _, ...userData } = user;
       return {
         user: userData,
-        token: 'asdfasdf',
+        token: this.signJWT({
+          id: user.id,
+          email: user.email,
+          name: user.name,
+        }),
       };
 
     } catch (error) {
@@ -86,5 +98,9 @@ export class AuthService extends PrismaClient implements OnModuleInit {
         message: error.message,
       })
     }
+  }
+
+  signJWT(payload: JwtPayload) {
+    return this.jwtSrv.sign(payload);
   }
 }
